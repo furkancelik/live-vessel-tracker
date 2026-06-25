@@ -1,0 +1,5 @@
+# Otomatik HTTPS + WebSocket proxy (Caddy). Kendi alan adınla değiştir.
+# Kullanım:  caddy run --config Caddyfile.example   (ya da /etc/caddy/Caddyfile)
+gemitakip.alanadin.com {
+    reverse_proxy 127.0.0.1:8090
+}

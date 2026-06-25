@@ -1,0 +1,8 @@
+node_modules
+.git
+.env
+.env.local
+*.log
+scratchpad
+.DS_Store
+README.md

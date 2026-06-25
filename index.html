@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemi Takip · Canlı Konteyner & Filo İzleme</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://unpkg.com" />
+</head>
+<body>
+  <!-- Dünya küresi -->
+  <div id="globe"></div>
+
+  <!-- Atmosferik katmanlar -->
+  <div class="bg-grain"></div>
+  <div class="bg-vignette"></div>
+  <div class="hud">
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+  </div>
+
+  <!-- Üst bar -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo-mark">⚓</span>
+      <span class="name">GEMİ <b>TAKİP</b></span>
+      <span class="sub">Canlı Konteyner &amp; Filo İzleme</span>
+    </div>
+    <div class="rhs">
+      <button class="mgr-open" id="mgrOpen">＋ Sevkiyatlarım</button>
+      <span class="sim-clock">TARİH&nbsp; <b id="simDate">—</b></span>
+      <span class="status-pill"><span class="dot"></span> CANLI</span>
+    </div>
+  </header>
+
+  <!-- Arama -->
+  <div class="searchbar">
+    <div class="search-row">
+      <input id="q" type="text" placeholder="Konteyner / Booking / Gemi adı / MMSI" autocomplete="off" spellcheck="false" />
+      <button id="shareBtn" class="search-share" title="Bağlantıyı paylaş" hidden>🔗</button>
+      <button id="clearBtn" class="search-clear" title="Temizle" hidden>✕</button>
+      <button id="searchBtn">ARA</button>
+    </div>
+    <div class="hints">
+      <span class="chip-label">Sevkiyatların yalnız bu tarayıcıda saklanır · eklemek için sağ üstten “＋ Sevkiyatlarım”.</span>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <!-- ====================== SOL PANEL ====================== -->
+  <button class="panel-handle left" id="leftHandle" title="Panelleri göster">›</button>
+  <aside class="panel-stack left" id="leftStack">
+    <div class="stack-head">
+      <span>SEVKİYAT TAKİBİ</span>
+      <button class="stack-hide" id="leftHide" title="Gizle">⮜</button>
+    </div>
+
+    <!-- Canlı AIS bağlantısı -->
+    <section class="card" id="aisCard">
+      <div class="card-title clickable">Canlı Bağlantı · AIS</div>
+      <div class="card-body">
+        <div class="ais-status">
+          <span class="ais-dot" id="aisDot"></span>
+          <span id="aisStatusText">Anahtar gerekli</span>
+        </div>
+        <div class="ais-meta">
+          <div><span class="k">İzlenen Gemi</span><span class="v" id="aisVessel">—</span></div>
+          <div><span class="k">MMSI</span><span class="v" id="aisMmsi">—</span></div>
+          <div><span class="k">IMO</span><span class="v" id="aisImo">—</span></div>
+          <div><span class="k">Son sinyal</span><span class="v" id="aisAge">—</span></div>
+        </div>
+        <div class="ais-help">Veri kaynağı: sunucu (AISStream proxy) · anahtar sunucuda gizli</div>
+      </div>
+    </section>
+
+    <!-- Sevkiyat bilgisi -->
+    <section class="card" id="shipCard">
+      <div class="card-title clickable">Sevkiyat Bilgisi</div>
+      <div class="card-body">
+        <div class="route-line">
+          <div class="port from"><div class="lbl">Yükleme / Loading</div><div class="val" id="polVal">—</div></div>
+          <div class="arrow">→</div>
+          <div class="port to"><div class="lbl">Boşaltma / Discharge</div><div class="val" id="podVal">—</div></div>
+        </div>
+        <div class="kv">
+          <div><div class="k">Gemi / Vessel</div><div class="v accent" id="vesselVal">—</div></div>
+          <div><div class="k">Sefer No / Voyage</div><div class="v" id="voyageVal">—</div></div>
+          <div><div class="k">Yük / Cargo Wt.</div><div class="v" id="weightVal">—</div></div>
+          <div><div class="k">Tip / Type</div><div class="v" id="typeVal">—</div></div>
+          <div class="full"><div class="k">Konteyner No / Booking No</div><div class="v" id="cntVal">—</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Telemetri -->
+    <section class="card" id="telCard">
+      <div class="card-title clickable">Konum & Telemetri <span class="src-tag" id="srcTag">TAHMİNİ</span></div>
+      <div class="card-body">
+        <div class="tel-top">
+          <div class="ring-wrap">
+            <svg width="92" height="92" viewBox="0 0 92 92">
+              <defs>
+                <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%"  stop-color="#ffce86"/>
+                  <stop offset="100%" stop-color="#e5392f"/>
+                </linearGradient>
+              </defs>
+              <circle class="track" cx="46" cy="46" r="40"></circle>
+              <circle class="prog" id="progRing" cx="46" cy="46" r="40"
+                      stroke-dasharray="251.3" stroke-dashoffset="251.3"></circle>
+            </svg>
+            <div class="ring-center">
+              <div class="pct" id="pctVal">—</div>
+              <div class="pct-lbl" id="pctLbl">SEYİR</div>
+            </div>
+          </div>
+          <div class="tel-stats">
+            <div class="stat"><div class="k">Hız</div><div class="v" id="speedVal">— <small>kn</small></div></div>
+            <div class="stat"><div class="k">Rota / Hdg</div><div class="v" id="hdgVal">—°</div></div>
+            <div class="stat"><div class="k">Kalan</div><div class="v" id="distVal">— <small>nm</small></div></div>
+            <div class="stat"><div class="k">ETA</div><div class="v" id="etaVal">— <small>gün</small></div></div>
+          </div>
+        </div>
+        <div class="coord-bar">
+          <span class="lbl">KONUM</span>
+          <span id="coordVal">—</span>
+        </div>
+        <div class="eta-line" id="etaLine">—</div>
+      </div>
+    </section>
+
+    <!-- Kontroller -->
+    <section class="card" id="ctrlCard">
+      <div class="card-title clickable">Önizleme & Görünüm</div>
+      <div class="card-body">
+        <div class="ctrl-row">
+          <button class="btn primary" id="playBtn">▶ SEFERİ OYNAT</button>
+          <button class="btn icon" id="todayBtn" title="Anlık tahmini konuma dön">⌖ Şimdi</button>
+        </div>
+        <div class="ctrl-row">
+          <button class="btn" id="followBtn" title="Gemiyi takip et">⦿ Takip</button>
+          <button class="btn active" id="rotateBtn" title="Otomatik döndür">⟳ Döndür</button>
+        </div>
+        <div class="slider-block">
+          <div class="row"><span class="k">Seyir İlerlemesi</span><span class="v" id="scrubLbl">0%</span></div>
+          <input type="range" id="scrub" min="0" max="1000" value="0" />
+        </div>
+        <div class="slider-block">
+          <div class="row"><span class="k">Önizleme Hızı</span><span class="v" id="speedLbl">1.0×</span></div>
+          <input type="range" id="speed" min="20" max="400" value="100" />
+        </div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- ====================== SAĞ PANEL: CANLI GEMİLER ====================== -->
+  <button class="panel-handle right" id="rightHandle" title="Canlı gemileri göster">‹</button>
+  <aside class="panel-stack right" id="rightStack">
+    <div class="stack-head">
+      <span>CANLI GEMİLER</span>
+      <button class="stack-hide" id="rightHide" title="Gizle">⮞</button>
+    </div>
+    <section class="card" id="fleetCard">
+      <div class="card-title clickable">Yakındaki Canlı Gemiler <span class="src-tag live" id="fleetCount">0</span></div>
+      <div class="card-body">
+        <label class="toggle-row">
+          <input type="checkbox" id="dotsToggle" checked />
+          <span>Haritada tüm gemileri göster</span>
+        </label>
+        <div class="fleet-hint">Bir gemiye tıkla → o gemiyi canlı izle</div>
+        <div class="fleet-list" id="fleetList">
+          <div class="fleet-empty">Canlı sinyal bekleniyor…</div>
+        </div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- Alt: sefer zaman çizelgesi -->
+  <footer class="timeline-bar">
+    <div class="timeline-head">
+      <span class="t">Sefer Güzergâhı · Cargo Details</span>
+      <div class="legend">
+        <span><i class="lg past"></i> Geçmiş</span>
+        <span><i class="lg cur"></i> Mevcut</span>
+        <span><i class="lg est"></i> Tahmini</span>
+        <span><i class="tbn">TBN</i> To Be Nominated</span>
+      </div>
+      <button class="tl-toggle" id="tlToggle" title="Daralt / Genişlet">▾</button>
+    </div>
+    <div class="timeline-track" id="timeline"></div>
+  </footer>
+
+  <!-- Bildirim -->
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- Sevkiyat yönetim modalı -->
+  <div class="modal-overlay" id="mgr" hidden>
+    <div class="modal">
+      <div class="modal-head">
+        <span>SEVKİYATLARIM</span>
+        <button class="modal-close" id="mgrClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="mgr-col list-col">
+          <div class="mgr-sub">Kayıtlı Sevkiyatlar</div>
+          <div class="mgr-list" id="mgrList"></div>
+          <button class="btn small" id="mgrNew">＋ Yeni sevkiyat</button>
+        </div>
+        <div class="mgr-col form-col">
+          <div class="mgr-sub" id="formTitle">Yeni Sevkiyat</div>
+          <div class="frow"><label>Konteyner No *</label><input id="fCnt" placeholder="örn. ABCU1234567" /></div>
+          <div class="frow2">
+            <div><label>Booking No</label><input id="fBook" /></div>
+            <div><label>Sefer / Voyage</label><input id="fVoy" /></div>
+          </div>
+          <div class="frow2">
+            <div><label>Gemi adı *</label><input id="fVessel" placeholder="örn. SEA STAR" /></div>
+            <div><label>MMSI *</label><input id="fMmsi" placeholder="örn. 271000000" /></div>
+          </div>
+          <div class="frow2">
+            <div><label>IMO</label><input id="fImo" /></div>
+            <div><label>Yük (KG)</label><input id="fWeight" /></div>
+          </div>
+          <div class="frow"><label>Konteyner tipi</label><input id="fType" placeholder="40 Ft Dry High Cube" /></div>
+          <div class="frow2">
+            <div><label>Yükleme limanı *</label><select id="fPol"></select></div>
+            <div><label>Boşaltma limanı *</label><select id="fPod"></select></div>
+          </div>
+          <div class="frow2">
+            <div><label>Kalkış (ETD) *</label><input type="date" id="fDep" /></div>
+            <div><label>Varış (ETA) *</label><input type="date" id="fArr" /></div>
+          </div>
+          <div class="frow"><label>Rota şablonu (harita çizgisi)</label><select id="fRoute"></select></div>
+          <div class="mgr-sub2">Kargo Olayları (timeline)</div>
+          <div id="fEvents"></div>
+          <button class="btn small" id="fAddEvent">＋ olay ekle</button>
+          <div class="mgr-actions">
+            <button class="btn primary" id="fSave">KAYDET</button>
+            <button class="btn" id="fReset">Temizle</button>
+            <span class="mgr-msg" id="fMsg"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- globe.gl (three.js dahil standalone) -->
+  <script src="https://unpkg.com/globe.gl"></script>
+  <script src="app.js"></script>
+</body>
+</html>

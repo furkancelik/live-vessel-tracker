@@ -1,0 +1,18 @@
+services:
+  gemi-takip:
+    build: .
+    image: gemi-takip
+    container_name: gemi-takip
+    restart: unless-stopped
+    ports:
+      # host 8104 → container 8090. Sadece 127.0.0.1: dışarı kapalı, yalnız Nginx erişir.
+      # Nginx config: proxy_pass http://127.0.0.1:8104;
+      - "127.0.0.1:8104:8090"
+    environment:
+      - AISSTREAM_KEY=${AISSTREAM_KEY}
+      - PORT=8090
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8090/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
