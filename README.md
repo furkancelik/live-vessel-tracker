@@ -5,6 +5,10 @@ küçük bir **Node WebSocket proxy** (server.js) AISStream'e TEK bağlantı tut
 tüm tarayıcılara yayınlar. Sevkiyat kayıtları her kullanıcıda **localStorage**'da; linkle paylaşılır.
 
 ![Gemi Takip — canlı filo](docs/screenshot-genel.png)
+*Boş ekran: küre + yakındaki canlı gemiler (gerçek zamanlı AIS).*
+
+![Sevkiyat takibi](docs/screenshot-takip.png)
+*Bir sevkiyat seçildiğinde: rota, telemetri (hız/rota/ETA), kargo zaman çizelgesi.*
 
 ```
 AISStream ──(1 bağlantı, anahtar sunucuda)──► Node WS sunucu ──(4 sn snapshot)──► N tarayıcı
